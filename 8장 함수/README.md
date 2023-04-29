@@ -515,10 +515,7 @@ let squares = [1,2,3,4].map(x => x*x) // [1,4,9,16]
     				}
     				total += element;
     		return total
-    }
-    sum([1,2,3]) // => 6
-    sum(1, 2, 3); // TypeError: 1은 이터러블이 아닙니다.
-    sum(1, 2, "3"); // TypeErrOr: 인텍스 2는 숫자가 아닙니다.
+    }함수
     ```
     
     > 타입스크립트의 필요성이 야기되는것 같다.
@@ -526,3 +523,629 @@ let squares = [1,2,3,4].map(x => x*x) // [1,4,9,16]
     
 
 ---
+
+## 8.4 값인 함수
+
+- 함수의 가장 중요한 특징은 정의하고 호출할 수 있다는 것이다.
+    - 하지만 자바스크립트 함수는 문법 구조일 뿐만 아니라 값으로써 변수에 할당될 수도 있고,
+    객체 프로퍼티나 배열 요소에 저장될 수도 있으며, 인자로 전달될 수도 있다.
+        
+        ```tsx
+        function square(x) { return x * x }
+        
+        let s = square;
+        square(4) // => 16
+        square(4) // => 16
+        
+        //객체 프로퍼티에 할당
+        let o = {square: function(x) { return x*x }}
+        let y = o.square(16);
+        
+        //배열 요소에 할당
+        let a = [x => x*x, 20] // 배열 리터럴
+        a[0](a[1])
+        ```
+        
+    - 이렇듯 함수를 값으로 취급할 수 있다는 것은 많은 유연함을 지닐 수 있게된다 ( ex) Array.sort)
+    
+
+### 8.4.1 함수 프로퍼티 직접 정의
+
+- 자바스크립트 함수는 기본 값이 아니라 특별한 객체이다.
+    - 따라서 함수 역시 프로퍼티를 가질 수 있다
+        - 호출할 때마다 서로 다른, 고유한 정수를 반환하는 함수가 필요한 경우, 함수에서 이미 반환한 값을 추적하기위해 해당 값을 함수의 프로퍼티로 지정할 수 있다.
+        
+        ```tsx
+        //함수 객체의 counter 프로퍼티를 초기화
+        //함수 선언은 끌어올려지므로 함수 선언 이전에 할당해도 됨
+        uniqueInteger.counter = 0;
+        
+        // 이 함수는 호출할 때마다 다른 정수를 반환
+        // 자신의 프로퍼티를 사용해 어떤 값을 반환한지 판단
+        function uniqueInteger() {
+        		return uniqureInteger.counter++; // counter 프로퍼티를 반환하고 증가 시킴
+        }
+        
+        uniqueInteger() // => 0
+        uniqueInteger() // => 1
+        ```
+        
+
+---
+
+## 8.5 네임스페이스인 함수
+
+- 함수 안에서 선언한 변수는 함수 바깥에서 보이지 않는다.
+    - 따라서 전역 네임스페이스를 어지럽히지 않도록, 임시 네임스페이스 기능을 하는 함수를 정의하는 것이 유용할 때도 있다
+    
+    ```tsx
+    function chunkNamespace() {
+    // 코드가 여기 존채합니다. 코드에서 정의한 변수는 모두 합수의 로컬 변수이므로 
+    // 전역 네임스떼이스를 어지럽히는 일은 없읍니다.
+    }
+    chunkNamespace(); // 단, 이 함수 호훌은 잊지 맡아야 합니다.
+    
+    //즉시 호출 함수 표현식 (IIFE)
+    (function() { // chunkNameSpace() 함수를 익명외 표현어으로 고처 씁니다. 
+    // 코드가 여기 존재합니다,
+    }()); // 합수 리터럴을 종료하고 즉시 호출합니다.
+    ```
+    
+    - 변수를 네임스페이스로 사용하는 방법은 네임스페이스 안에 있는 변수를 사용해 하나 이상의 함수를 정의하고, 정의된 함수를 네임스페이스 함수의 반환 값으로 사용할때 아주 유용하다
+        
+        이를 `클로저` 라고 한다.
+        
+
+---
+
+## 8.6 클로저
+
+- 대부분의 최신 프로그래밍 언어와 마찬가지로 자바스크립트 역시 `어휘적 스코프(lexical scope)`
+    
+    를 사용한다.
+    
+    - `어휘적 스코프` 란 함수가 호출 시점의 스코프가 아니라 자신이 정의된 시점의 변수 스코프를 사용하여 실행된다는 뜻이다.
+    - 어휘적 스코프를 구현하기 위해서는 자바스크립트 함수 객체의 내부 상태에 함수의 코드뿐만 아니라, 함수가 정의된 스코프에 대한 참조도 반드시 포함 되어 있어야한다.
+        - 이렇게 함수 객체와 스코프를 조합한 것을 클로저라 부른다.
+
+- 엄밀히 말해 자바스크립트 함수는 모두 클로저지만, 대부분의 함수가 자신이 정의된 곳과 같은 스코프에서 호출되므로 보통은 클로저인지 아닌지 따질 필요가 없다.
+    
+    <aside>
+    💡 클로저가 유용할 떄는 함수가 정의된 곳과 다른 스코프에서 호출 될때 뿐이다.
+    
+    </aside>
+    
+
+### 클로저
+
+- 클로저를 이해하기 위해서는 중첩된 함수의 어휘적 스코프 규칙을 잘 살펴보아야 한다.
+
+```tsx
+let scope = “global scope”; //전역 변수
+function checkscope() {
+		let scope = ”local scope”;//로컬 변수
+	  function f() { return scope; } // 이 스코프에 있는 값을 반환
+		return f();
+} checkscope() // => "local scope"
+```
+
+- checkscope() 함수는 로컬 변수를 선언하고, 그 변수의 값을 반환하는 함수를 정의해 호출 한다.
+    
+    > checkscope()가 “local scope”를 반환하는 이유를 명확히 이해해야 한다.
+    > 
+    
+    ```tsx
+    let scope = “global scope”; 
+    function checkscope() {
+    		let scope = ”local scope”; 
+    		function f() { return scope; } 
+    		return f ;
+    }
+    let s = checkscope()(); // => "local scope"
+    ```
+    
+    - 위에서는 괄호 한쌍이 checkscope()() 로 내부에서 외부로 이동하였다.
+        - 중첩된 함수 f()는 변수 scope가 “local scope”였던 스코프에서 정의되었기 때문에 f를 어디서 실행하든 상관없이 스코프가 유지된다.
+            - 이것이 클로저의 강력함으로, 클로저는 자신을 정의한 외부함수의 로컬변수와 매개변수를 그대로 캡처한다.
+            
+- 클로저는 함수 호출 시점의 로컬 변수를 캡처하므로 이 변수를 비공개 상태로 사용할 수 있다.
+    
+    ```tsx
+    let uniqueInteger = (function() { // 다음 함수의 비공개 상태를 
+    		let counter = 0; // 정의하고 호출합니다. 
+    		return function() { return counter++; };
+    }());
+    uniqueinteger() // => 0 
+    uniqueinteger() // => 1
+    ```
+    
+    - uniqueInteger 변수에 IIFE(즉시 함수 표현식) 을 통해 중첩된 함수(내부 함수)가 할당되었다.
+    - 중첩된 함수는 자신의 스코프에 있는 변수에 접근할 수 있으므로 외부함수의 변수 counter에 접근할 수 있으며 사용도 가능하다.
+    - 외부 함수가 종료되면 다른 코드에서는 counter 변수를 볼 수 없고 오직 중첩된 함수만 사용할 수 있게 된다.
+
+- 클로저를 통해 객체를 생성할때 마다 매번 새 스코프가 생성된다.
+    
+    ```tsx
+    function counter() {
+    		let n = 0;
+    		return {
+    				count: function() { return n++;}
+    				reset: function() { n = 0 ;}
+    		}
+    }
+    
+    let c = count(), d = count(); // 카운터 두개 생성
+    c.count() // => 0
+    d.count() // => 0 : c와 별도로 계산된다.
+    c.reset();
+    c.count() // => 0
+    d.count() // => 1
+    ```
+    
+    - c, d 모두 같은 counter 객체를 반환받았다.
+        - 두 메서드가 같은 비공개 변수 n 에 접근하며, counter()를 호출할 때마다 이전 호출과 독립된 새 스코프를 생성한다
+            - 따라서 counter()를 두번 호출하면 카운터 객체가 두개 생기며 이들의 비공개 변수 n은 각각 다른것이다.
+            
+
+> 클로저 기법을 통해 비공개 상태를 공유하는 방법을 일반화 할수도 있다.
+> 
+
+```tsx
+// 이 함수는 지정된 이름의 프로퍼티에 대한 프로떠티 접근자 메서드를 객체 o에 추가합니다. 
+// 메서드 이름은 get<name>과 set<name>으로 지정됩니다. 판별 함수가 제공됐다면
+// 셰터 메서드는 인자톨 저장하기 전에 판별 함수틀 사용해 유효성올 테스트합니다.
+// 판별 함수가 false률 반환힌다면 셰터 메서드는 예외를 일으킵니다.
+
+// 이 함수의 독특한 점은 게터와 세터 메서드가 조작하는 프로퍼티 값이
+// 객체 o에 저장되지 않는다는 점입니다. 값은 이 함수의 로컬 변수에만 저장됩니다. 
+// 게터와 셰터 메서드는 합수에 로컬로 정의됐으므로 로컬 번수에 접근힐 수 있습니다.
+// 따라서 값은 두 접근자 에서만 사용힐 수 있으며, 세터 메서드들 통하지 않고서는 
+// 값을 수정하거나 저장할 수 없습니다.
+
+function addPrivateProperty(o, name, predicate) { 
+		let value; // 프로퍼티 값입니다.
+		// 게터 메서드는 단순히 그 값을 반환합니다.
+		o[`get${name}`] = function() { return value; };
+		// 세터 메서드는 판별 합수의 판단에 따라 값을 저장하거나 예외를 일으킵니다. 
+		o[`set${name}`] = function(v) {
+		if (predicate&& !predicate(v)) {
+				throw new TypeError(`set${name}: invalid value ${v}`);
+		} else {
+				value = v;
+		};
+}
+
+// 다융 코드는 addPrivateProperty() 메서드의 사용 방법 예시입니다. 
+let o={}; //빈객체입니다.
+
+// 프로퍼티 접근자 메서드 getName()과 setName()을 추가합니다. 오직 문자열 값만 허용합니다. 
+addPrivateProperty(o, ”Name”, x => typeof x === "string“);
+
+o.setName("Frank"); // 프로퍼티 값을 저장합니다.
+o.getName() // => ”Frank”
+o.setName(0); // TypeError: 올바르지 않은 타입을 사용했습니다.
+```
+
+- 클로저를 생성할 때 클로저가 접근을 공유하면 안되는 변수에 대한 접근까지 부주의하게 공유하지 않도록 조심해야 한다.
+    
+    ```tsx
+    // 이 함수는 항상v를 반환하는 함수를 반환합니다. 
+    function constfunc(v) { return () => v; }
+    // 정적 함수 배열을 생성합니다.
+    let funcs = [];
+    for(var i = 0; i < 10; i++) funcs[i] = constfunc(i);
+    // 인덱스 5의 함수는 5를 반환합니다. 
+    funcs [5]() // => 5
+    ```
+    
+    - 위 처럼 루프에서 클로저를 여러개 생성하는 함수를 작성할때, 루프를 클로저를 정의하는 함수 안으로 옮기는 실수를 하곤 한다.
+        
+        ```tsx
+        // 0부터 9까지의 값을 반환하는 함수 배열을 반환
+        function constfuncs() {
+        		let funcs = [];
+        		for(var i = 0; i < 10; i++) {
+        				funcs[i] = () => i; 
+        		}
+        		return funcs;
+        let funcs = constfuncs();
+        funcs[5]() // => 10; 왜 5가 아닐까요?
+        ```
+        
+        - 위 코드처럼 클로저 10개를 생성하지만, 외부 변수 i를 모든 클로저가 공유하게 되어 반환된 배열 안의 클로저들이 모두 같은 10을 반환하게 되는 결과를 낳으며, 의도와 전혀 다른 결과를 낳았다.
+        
+        > 위 문제는 변수를 var로 선언했기 때문이다. ⇒ 변수 i는 루프 바디 안에만 존재 하는것이 아닌 함수 전체에 존재 하게 되어 클로저들이 이 변수를 공유하게 된것이다.
+        
+        ES6에서 블록스코프를 도입하고, let, const 가 생김에 따라 var i를 let 또는 const로만 변경하게 되면 매 반복마다 독립적인 스코프를 생성하여 각 스코프는 각자의 i 를 참조하여 해결할 수 있다.
+        > 
+        
+
+---
+
+## 8.7 함수 프로퍼티, 메서드, 생성자
+
+- 함수는 특별한 종류의 자바스크립트 객체이다
+- 함수는 객체이므로 다른 객체와 마찬가지로 프로퍼티와 메서드를 가질 수 있다
+- 새 함수 객체를 생성하는 Function() 생성자도 있다
+
+### 8.7.1 length 프로퍼티
+
+- 읽기 전용이며 함수의 정의된 매개변수의 개수이며 보통 함수가 예상하는 인자 개수이다
+- 함수에 나머지 매개변수가 있다면 그 매개변수는 이 length 프로퍼티에 포함되지 않는다
+
+### 8.7.2 name 프로퍼티
+
+- 읽기 전용이며 함수가 정의될 때 이름이 있었다면 그 이름, 익명의 함수 표현식이라면 처음 생성됐을 때 할당된 변수나 프로퍼티 이름이다
+- 디버깅이나 에러 메세지에 유용하게 사용된다
+
+### 8.7.3 prototype 프로퍼티
+
+- 화살표 함수를 제외하면 모든 함수에는 프로토타입 객체를 참조하는 prototype 프로퍼티가 있다
+- 함수의 프로토타입 객체는 모두 다르다
+- 함수를 생성자로 사용하면 새로 생성된 객체는 프로토타입 객체에서 프로퍼티를 상속한다
+
+### 8.7.4 call()과 apply() 메서드
+
+- call() 과 apply()는 함수를 마치 다른 객체의 메서드인 것처럼 간접적으로 호출한다
+- 첫 번째 인자는 함수를 호출할 객체이다
+    - 이 인자가 호출 컨텍스트이며 함수 바디 안에서 this 키워드의 값이다
+- 함수 f() 를 인자 없이 객체 o 의 메서드로 호출할 때는 call() 과 apply() 중 아무거나 써도 된다
+    
+    ```jsx
+    f.call(o)
+    f.apply(o)
+    o.m = f
+    o.m()
+    ```
+    
+- 화살표 함수는 자신의 정의된 컨텍스트의 this 값을 상속하는데 이 값은 call()과 apply() 메서드로 덮어쓸 수 없다
+- 화살표 함수에서 이들 메서드를 호출하면 첫 번째 인자는 무시되는 것이나 마찬가지이다
+- call() 을 사용할때 두번째 인자는 호출될 함수에 전달된다
+    - 이 인자는 화살표 함수에서도 무시되지 않는다
+- apply() 메서드도  call() 메서드와 비슷하지만 함수에 전달할 인자가 배열로 제공된다는 점이 다르다
+    
+    ```jsx
+    f.call(o,1,2)
+    f.apply(o,[1,2])
+    ```
+    
+- 함수가 받는 인자 개수에 제한이 없다면 apply() 메서드를 써서 임의의 길이를 가진 배열을 전달해 함수를 호출할 수 있다
+    
+    ```jsx
+    let biggest = Math.max.apply(Math, arrayOfNumbers)
+    ```
+    
+
+### 8.7.5 bind() 메서드
+
+- bind() 의 주요 목적은 함수를 객체에 결합하는 것이다
+- 함수 f에서 bind() 메서드를 호출하면서 객체 o를 인자로 전달하면 호출 컨텍스트가 o 로 결합된 새 함수를 반환한다
+- 새 함수에 전달한 인자는 모두 원래 함수에 전달된다
+
+```jsx
+function f(y) {return this.x + y}
+let o = {x:1}
+let g = f.bind(o)
+g(2) // 3
+let p = {x:10, g}
+p.g(2) // 3 => g는 여전히 o에 결합되어 있다
+```
+
+- 화살표 함수는 자신의 정의된 환경의 this 값을 상속하는데 이 값은 bind() 에서 덮어쓸 수 없으므로, 함수 f() 를 화살표 함수로 정의했다면 결합은 이루어지지 않는다
+- bind() 메서드는 단순히 함수를 객체에 결합하는 것으로 끝나지 않고 bind() 에 전달하는 인자 중 첫 번째를 제외한 나머지는 this 값과 함께 결합된다
+- 이러한 부분 적용은 화살표 함수에도 동작한다
+    - 부분 적용은 함수형 프로그래밍에서 널리 쓰이는 기법이며 커링(currying) 이라고 부르기도 한다
+
+```jsx
+let sum = (x,y) => x+y
+let succ = sum.bind(null, 1) // 1이 x에 결합됨
+succ(2) // 3
+
+function f(y,z) {
+	return this.x + y + z
+}
+let g = f.bind({x:1}, 2) // this 와 y 를 결합한다
+g(3) // 6
+```
+
+- bind() 가 반환하는 함수의 name 프로퍼티는 bind() 를 호출한 함수의 name 앞에 “bound” 를 붙인 값이다
+
+### 8.7.6 toString() 메서드
+
+- 다른 자바스크립트 객체와 마찬가지로 함수에도 toString() 메서드가 있다
+- ECMAScript 명세는 이 메서드가 함수 선언문의 문법을 지키는 문자열을 반환해야 한다고 규정하지만 대부분 환경에서 함수의 toString() 메서드는 소스 코드 전체를 반환한다
+- 내장 함수는 일반적으로 “[native code]” 같은 문자열을 함수 바디로 반환한다
+
+### 8.7.7 Function() 생성자
+
+- 함수는 객체이므로 Function() 생성자를 사용해 새 함수를 생성할 수 있다
+    
+    ```jsx
+    const f = new Function("x", "y", "return x*y")
+    // 위 코드가 생성한 함수는 다음과 같이 익숙한 문법으로 정의한 함수와 거의 동등하다
+    const f = function(x,y) {return x*y}
+    ```
+    
+- Function() 생성자는 문자열 인자를 개수 제한 없이 받는다
+- 마지막 인자는 함수 바디인 텍스트이다
+    - 이 텍스트에는 자바스크립트 문을 제한 없이 넣을 수 있으며 각 문은 세미콜론으로 구분한다
+- Function() 생성자에 전달하는 인자 중 함수 이름에 해당하는 것은 없다
+    - 함수 리터럴과 마찬가지로 Function() 생성자 역시 익명 함수를 생성한다
+- Function() 생성자는 런타임에 자바스크립트 함수를 동적으로 생성하고 컴파일 할수 있다
+- Function() 생성자는 호출될때마다 함수 바디를 분석하고 새 함수 객체를 생성한다
+    - 루프나 자주 호출되는 함수 안에서 생성자를 호출하는 것은 효율적이지 않다
+    - 중첩된 함수와 함수 표현식은 루프 안에 있더라도 매번 재컴파일 되지 않는다
+- Function() 생성자에서 아주 중요한 포인트는 생성자가 만드는 함수는 어휘적 스코프를 사용하지 않는다
+    - 생성자가 만드는 함수는 항상 최상위 함수로 컴파일 된다
+    
+    ```jsx
+    let scope = "global"
+    function constructFunction() {
+    	let scope = "local"
+    	return new Function("return scope"); // 로컬 스코프는 캡쳐하지 않는다
+    }
+    //Function() 생성자가 반환하는 함수는 로컬 스코프를 사용하지 않는다
+    constructFunction()() // global
+    ```
+    
+
+---
+
+## 8.8 함수형 프로그래밍
+
+- 자바스크립트는 함수형 프로그래밍 언어는 아니지만, 함수를 객체처럼 조작할 수 있으므로 함수형 프로그래밍 기법을 사용할 수 있다
+- map() 과 reduce() 같은 배열 메서드는 특히 함수형 프로그래밍 스타일에 알맞다
+
+### 8.8.1 함수로 배열 처리
+
+- 숫자로 이루어진 배열이 있고 이 값들의 평균과 표준 편차를 구하려 한다
+
+```jsx
+// 함수형 프로그래밍 스타일을 사용하지 않을때
+let data = [1,1,3,5,5]
+
+// 평균 구하기
+let total = 0
+for(let i=0; i<data.length; i++) total += data[i]
+let mean = total/data.length // mean === 3, 평균은 3이다
+
+// 표준 편차 구하기
+total = 0
+for(let i=0l i<data.length; i++) {
+	let deviation = data[i] - mean
+	total += deviation * deviation
+}
+let stddev = Math.sqrt(total/(data.length-1)) //stddev === 2
+```
+
+- 같은 계산을 배열 메서드 map() 과 reduce() 를 사용해 간결한 함수형 스타일로 바꿀 수 있다
+
+```jsx
+const sum = (x,y) => x+y
+const square = x => x*x
+
+// sum 과 square를 사용해 평균과 표준 편차를 계산한다
+let data = [1,1,3,5,5]
+let mean = data.reduce(sum)
+let deviations = data.map(x => x - mean)
+let stddev = Math.sqrt(deviations.map(square).reduce(sum)/(data.length-1))
+stddev // 2
+```
+
+- 새로 만든 코드는 앞의 코드와 사뭇 다르지만 여전히 객체 메서드를 호출하고 있으므로 객체 지향 스타일도 남아있다
+- map() 과 reduce() 메서드의 함수형 버전도 만들어 보자
+
+```jsx
+const map = function(a, ...args) {return a.map(...args)}
+const reduce = function(a, ...args) {return a.reduce(...args)}
+
+const sum = (x,y) => x+y
+const square = x => x*x
+
+let data = [1,1,3,5,5]
+let mean = reduce(data, sum)/data.length
+let deviations = map(data, x => x-mean)
+let stddev = Math.sqrt(reduce(map(deviations,square), sum)/(data.length-1))
+stddev // 2
+```
+
+### 8.8.2 고계 함수
+
+- 고계 한수(higher-older function) 는 하나 이상의 함수를 인자로 받아 새 함수를 반환하는 함수이다
+
+```jsx
+function not(f) {
+	return function(...args) { // 새 함수를 반환
+		let result = f.apply(this, args) // 이 함수는 f를 호출하고
+		return !result // 그 결과를 부정한다
+	}
+}
+
+const even = x => x % 2 === 0
+const odd = not(even)
+[1,1,3,5,5].every(odd) // true
+```
+
+- not() 함수는 함수 인자를 받고 새 함수를 반환하는 고계 함수이다.
+- 다음 예제로는 mapper() 함수가 있는데 이 함수는 함수 인자를 받고 그 함수를 사용해 배열을 다른 배열로 변환하는 새 함수를 반환한다
+- 이 함수는 앞에서 정의한 map() 함수를 사용하며, 두 함수가 어떻게 다른지 이해하는 것이 중요하다
+
+```jsx
+const map = function(a, ...args) {return a.map(...args)}
+
+function mapper(f) {
+	return a => map(a,f)
+}
+
+const increment = x => x+1
+const incrementAll = mapper(increment)
+incrementAll([1,2,3])
+```
+
+- 다음은 f와 g 두 함수를 받고 f(g()) 를 계산하는 새 함수를 반환한다
+
+```jsx
+// f(g(...)) 를 계산하는 새 함수를 반환한다.
+// 반환되는 함수 h는 인자 전체를 g에 전달하고, g의 반환 값을 f에 전달한 다음 f의 반환 값을 반환한다
+function compose(f,g) {
+	return function(..args) {
+		return f.call(this, g.apply(this, args))
+	}
+}
+const sum = (x,y) => x+y
+const square = x => x*x
+compose(square, sum)(2,3) // 25
+```
+
+### 8.8.3 함수의 부분 적용
+
+- bind() 메서드는 왼쪽에 있는 인자를 부분적으로 적용한다
+    - bind() 에 전달하는 인자는 원래 함수에 전달되는 인자 리스트의 시작 부분에 위치한다는 뜻이다
+    - 반대로 오른쪽에 있는 인자를 부분적으로 적용하는 것도 가능하다
+
+```jsx
+// 이 함수의 인자는 왼쪽에 전달된다
+function partialLeft(f, ...outerArgs) {
+	return function(...innerArgs) {
+		let args = [...outerArgs, ...innerArgs]
+		return f.apply(this, args)
+	}
+}
+// 이 함수의 인자는 오른쪽에 전달된다
+function partialRight(f, ...outerArgs) {
+	return function(...innerArgs) {
+		let args = [...innerArgs, ...outerArgs]
+		return f.apply(this, args)
+	}
+}
+
+function partial(f, ...outerArgs){
+	return function(...innerArgs) {
+		let args = [...outerArgs]
+		let innerIndex = 0
+		// 인자를 순회하며 정의되지 않은 값을 내부 인자로 채운다
+		for(let i=0; i<args.length;i++) {
+			if(args[i] === undefined) args[i] = innerArgs[innerIndex++]
+		}
+		// 남은 내부 인자를 이어 붙인다
+		args.push(...innerArgs.slice(innerIndex))
+		return f.apply(this,args)
+	}	
+}
+// 인자 세 개를 받는 함수
+const f = function(x,y,z) { return x * (y-z) }}
+// 세 가지 부분 적용이 어떻게 다르게 동작하는지 보자
+partialLeft(f,2)(3,4) // -2, 첫번째 인자에 결합 2 * (3-4)
+partialRight(f,2)(3,4) // 6, 마지막 인자에 결합 3 * (4-2)
+partial(f,undefined,2)(3,4) // -6, 중간 인자에 결합 3 * (2-4)
+```
+
+- 부분 적용 함수를 사용하면 이미 정의한 함수를 사용해서 더 흥미로운 함수를 쉽게 정의할 수 있다
+
+```jsx
+const sum = (x,y) => x+y
+const increment = partialLeft(sum,1)
+const cuberoot = partialRight(Math.pow, 1/3)
+cuberoot(increment(26)) // 3
+```
+
+- 부분 적용과 고계 함수를 조합하면 더 흥미롭다
+
+```jsx
+function compose(f,g) {
+  return function(...args) {
+    return f.call(this, g.apply(this, args))
+  }
+}
+
+const not = partialLeft(compose, x => !x)
+const even = x => x%2 === 0
+const odd = not(even)
+const isNumber = not(isNaN)
+odd(3) && isNumber(2) // true
+```
+
+- 합성과 부분 적용을 사용해 평균과 표준 편차를 완전한 함수형 스타일로 개선할 수도 있다
+
+```jsx
+const sum = (x,y) => x + y
+const square = x => x*x 
+const map = function(a, ...args) {
+  return a.map(...args)
+}
+const reduce = function(a, ...args) {
+  return a.reduce(...args)
+}
+const product = (x,y) => x*y
+const neg = partial(product, -1)
+const sqrt = partial(Math.pow, undefined, .5)
+const reciprocal = partial(Math.pow, undefined, neg(1))
+
+//이제 평균과 표준 편차를 계산하다
+let data = [1,1,3,5,5]
+let mean = product(reduce(data, sum), reciprocal(data.length))
+let stddev = sqrt(product(reduce(map(data,
+  compose( square,
+  partial(sum, neg(mean)))),
+  sum),
+  reciprocal(sum(data.length,neg(l)))));
+[mean, stddev] // [3,2]
+```
+
+- 이 코드는 평균과 표준 편차를 계산하면서 오로지 함수 호출에만 의존했다
+- 자바스크립트 코드가 얼마나 깊이 함수형 스타일을 따를 수 있는지 확인하는 연습 문제 정도로만 보면 좋다
+
+### 8.8.4 메모제이션
+
+- 8.4.1 절에서 이전에 계산한 결과를 캐시하는 팩토리얼 함수를 만들었다
+- 함수형 프로그래밍에서는 이런 캐싱을 메모제이션이라고 부른다
+
+```jsx
+function memoize(f) {
+	const cache = new Map()
+
+	return function(...args) {
+		let key = args.length + args.join("+")
+		if(cache.has(key)) return cache.get(key)
+		else {
+			let result = f.apply(this, args)
+			cache.set(key, result)
+			return result
+		}
+	}
+}
+```
+
+- memoize() 함수는 캐시로 사용할 새 객채를 생성하고 이 객체를 로컬 변수에 할당하므로, 반환된 함수 외에는 이 객체를 볼수 없다
+- 반환된 함수는 인자 배열을 문자열로 변환하고 그 문자열을 캐시 객체의 프로퍼티 이름으로 사용한다
+- 값이 캐시에 존재하면 바로 반환하고 그렇지 않다면 인자를 넘기면서 지정된 함수를 호출해 값을 계산하고 캐시에 저장한 다음 반환한다
+
+```jsx
+// 유클리드 알고리즘을 사용해 두 정수의 최대 공약수를 계산해 반환한다
+function gcd(a,b) {
+	if(a<b) [a,b] = [b,a]
+	while(b !== 0) [a,b] = [b, a%b]
+	return a
+}
+
+const gcdmemo = memoize(gcd)
+gcdmemo(85, 187) // 17
+
+//재귀 함수로 고쳐 쓴다면 원래 함수가 아니라 캐시를 활용하도록 고쳐 쓴 함수를 재귀적으로 호출한다
+const factorial = memoize(function(n) {
+	return (n <= 1) ? 1 : n * factorial(n-1)
+})
+
+factorial(5) // 120
+```
+
+---
+
+## 8.9 요약
+
+- function 키워드나 ES6 화살표 문법으로 함수를 정의할 수 있다
+- 함수는 메서드나 생성자로도 사용할 수 있다
+- ES6 기능 중에는 선택사항인 함수 매개변수에 기본값을 할당하는 기능, 나머지 매개 변수를 사용해 인자 여럿을 배열에 모으는 기능, 객체와 배열을 분해해 함수 매개변수로 사용하는 기능 등이 있다
+- 분해 연산자 … 를 사용해 배열이나 이터러블 객체의 요소를 함수 인자로 전달해 호출할 수 있다
+- 외부 함수 안에서 정의되고 반환된 함수는 외부 함수의 어휘적 스코프에 대한 접근을 유지하고 있으므로, 외부 함수에서 정의한 변수에 접근할 수 있다
+- 함수는 자바스크립트에서 조작할 수 있는 객체이며, 이를 통해 함수형 프로그래밍 스타일을 사용할 수 있다
